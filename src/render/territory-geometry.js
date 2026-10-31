@@ -64,7 +64,38 @@ export function simplifyPoints(points,tolerance){
 
 /** Half-octave zoom bands; tolerance stays below ~.35 screen pixel. */
 export function lodBand(scale){return Math.round(Math.log2(Math.max(1e-3,scale))*2);}
+/* Border detail: past DETAIL_BAND (about 6 px per cell) each chain is refined by deterministic midpoint
+ * displacement. Every segment's offset depends only on its own endpoints, so a finer band keeps the shapes
+ * of the coarser one and adds new ones; junctions stay pinned and displacement is capped (and tapered near
+ * the ends) so neighbouring chains never cross. A roughness field lets mountains read rugged and plains
+ * calm. Both fills and strokes read the same refined chain, so fills still meet exactly. */
+export const DETAIL_BAND=5;
+let detailAmplitude=.2,roughness=null;
+export function setBorderDetail(amplitude=.2,field=null){detailAmplitude=Math.max(0,amplitude);roughness=field;detailEpoch++;}
+let detailEpoch=0;
+const hash=(a,b,c,d)=>{let h=Math.imul(a|0,374761393)^Math.imul(b|0,668265263)^Math.imul(c|0,2147483647)^Math.imul(d|0,1274126177);h=Math.imul(h^(h>>>13),1103515245);return ((h^(h>>>16))>>>0)/4294967296*2-1;};
+function refine(points,band){
+  const scale=2**(band/2),minLen=2.6/scale,maxDisp=.32,n=points.length/2;if(n<2)return points;
+  let total=0;for(let i=1;i<n;i++)total+=Math.hypot(points[i*2]-points[i*2-2],points[i*2+1]-points[i*2-1]);
+  const out=[points[0],points[1]];let walked=0;
+  const sub=(ax,ay,bx,by,depth,budget,t0,t1)=>{
+    const dx=bx-ax,dy=by-ay,len=Math.hypot(dx,dy);if(len<=minLen||depth>8||budget<=1e-4){out.push(bx,by);return;}
+    const mx=(ax+bx)/2,my=(ay+by)/2,q=v=>Math.round(v*512),r=hash(q(ax)+q(bx),q(ay)+q(by),q(ax)*q(by)-q(bx)*q(ay),depth),rough=roughness?roughness(mx,my):1,tm=(t0+t1)/2,taper=Math.min(1,Math.min(tm,total-tm)/.9);
+    const off=Math.max(-budget,Math.min(budget,len*detailAmplitude*rough*r))*taper,nx=-dy/len,ny=dx/len,px=mx+nx*off,py=my+ny*off;
+    sub(ax,ay,px,py,depth+1,budget-Math.abs(off)*.5,t0,tm);sub(px,py,bx,by,depth+1,budget-Math.abs(off)*.5,tm,t1);
+  };
+  for(let i=1;i<n;i++){
+    const ax=points[i*2-2],ay=points[i*2-1],bx=points[i*2],by=points[i*2+1],len=Math.hypot(bx-ax,by-ay),pieces=Math.max(1,Math.ceil(len/.75));
+    for(let k=0;k<pieces;k++){const x0=ax+(bx-ax)*k/pieces,y0=ay+(by-ay)*k/pieces,x1=ax+(bx-ax)*(k+1)/pieces,y1=ay+(by-ay)*(k+1)/pieces,l=len/pieces;sub(x0,y0,x1,y1,0,maxDisp,walked,walked+l);walked+=l;}
+  }
+  return Float32Array.from(out);
+}
 export function chainPoints(chain,band){
+  if(band>DETAIL_BAND&&detailAmplitude>0){
+    const key=`d${Math.min(band,DETAIL_BAND+12)}:${detailEpoch}`;let points=chain.lod.get(key);
+    if(!points){points=refine(chain.points,Math.min(band,DETAIL_BAND+12));if(chain.lod.size>24)for(const k of chain.lod.keys())if(typeof k==='string'&&!k.endsWith(`:${detailEpoch}`))chain.lod.delete(k);chain.lod.set(key,points);}
+    return points;
+  }
   let points=chain.lod.get(band);
   if(!points){const tolerance=Math.min(.3,.35/2**(band/2));points=tolerance<.004?chain.points:simplifyPoints(chain.points,tolerance);chain.lod.set(band,points);}
   return points;

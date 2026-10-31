@@ -8,6 +8,7 @@ import {createTileSource,createTerrainSampler} from '../lod/terrain-sampler.js';
 import {createSurfaceSampler} from '../lod/surface-sampler.js';
 import {formatDistance} from '../ui/units.js';
 import {reliefField,reliefTone,reliefOpacity,invalidateRelief} from './relief.js';
+import {setBorderDetail} from './territory-geometry.js';
 import {CIVILIZATION_MODES,TERRITORY_MODES,drawCivilizationTerritories,drawCivilizationLabels,drawTradeRoutes,invalidateCivilizationGeometry,civilizationSampleIndices} from './civilization-renderer.js';
 
 const DETAIL_MODES=new Set(['physical','elevation','biome']);
@@ -24,11 +25,17 @@ export class WorldRenderer extends MapRenderer {
     Object.assign(this.overlays,{terrainReveal:true,provinces:false,provinceColors:false,provinceNames:false,tradeRoutes:false});this.selectedProvince=0;this.provinceBreakdown='none';
     this.planes={features:this.features,mask:this.landClip};for(const key of ['civilization','national','edge','work'])this.planes[key]=document.createElement('canvas');this.cityPositions=new Map();this.riverEndCache=new Map();
   }
+  /** Border roughness follows the land: rugged in mountains, calmer on plains and along rivers. */
+  applyBorderDetail(level=this.borderDetail??'natural'){
+    this.borderDetail=level;const w=this.world,l=w?.layers;const amplitude=level==='off'?0:level==='rugged'?.3:.2;
+    if(!l?.elevation){setBorderDetail(amplitude,null);return;}
+    const W=w.width,H=w.height;setBorderDetail(amplitude,(x,y)=>{const i=clamp(Math.floor(y),0,H-1)*W+((Math.floor(x)%W)+W)%W,m=clamp((l.mountainUplift?.[i]||0)/1800+Math.max(0,l.elevation[i])/4000,0,1),river=l.river?.[i]?.45:1;return (.55+.95*m)*river;});
+  }
   setWorld(world,fit=false,products=['elevation']) {
     const physicalChange=this.world!==world||world.meta.preview||products.some(p=>['elevation','terrain','climate','hydrology'].includes(p));
     invalidateCivilizationGeometry(world);
     if(world.meta.preview||products.some(p=>['elevation','terrain','climate','hydrology'].includes(p)))invalidateRelief(world);
-    super.setWorld(world,fit,products);if(physicalChange)this.resetSampling();
+    super.setWorld(world,fit,products);if(physicalChange){this.resetSampling();this.applyBorderDetail();}
     if(world.meta.preview){if(!this.previewing)this.tiles.dispose();this.previewing=true;}
     else {this.previewing=false;if(physicalChange){this.paths=buildRiverGeometry(world);this.tiles.dispose();this.tiles.failed=false;}}
   }

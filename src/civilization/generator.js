@@ -10,7 +10,7 @@ import {deriveUrbanization} from './economy.js';
 import {cityFootprint} from './society-utils.js';
 import {separateNeighbourColors} from './identity.js';
 
-export const DEFAULT_CIV_SETTINGS=Object.freeze({seed:'Founding-1',nationCount:72,cultureCount:64,familyCount:14,totalPopulation:5000000000,distribution:'realistic',populationConcentration:.55,populationInequality:.55,urbanization:.62,sizeInequality:.72,geographyInfluence:.75,culturalAffinity:.65,unclaimedPolar:true,unclaimedHarsh:false,cityCount:1200,provinceAverage:8,provinceVariability:.65,religionCount:18,religionFamilyCount:6,noReligionEnabled:true,noReligionRate:.15,accentedLetters:true,urbanizationVariation:.5,technologyLevel:.6,developmentInequality:.6,tradeRoutes:160,palette:'atlas',paletteSaturation:1,startDate:'2000-01-01'});
+export const DEFAULT_CIV_SETTINGS=Object.freeze({seed:'Founding-1',nationCount:72,cultureCount:64,familyCount:14,totalPopulation:5000000000,distribution:'realistic',populationConcentration:.55,populationInequality:.55,urbanization:.62,sizeInequality:.72,geographyInfluence:.75,culturalAffinity:.65,unclaimedPolar:true,unclaimedHarsh:false,cityCount:1200,provinceAverage:8,provinceVariability:.65,religionCount:18,religionFamilyCount:6,noReligionEnabled:true,noReligionRate:.15,accentedLetters:true,urbanizationVariation:.5,technologyLevel:.6,developmentInequality:.6,tradeRoutes:200,palette:'atlas',paletteSaturation:1,startDate:'2000-01-01'});
 export const CIV_PRESETS=Object.freeze({
   'Modern atlas':{...DEFAULT_CIV_SETTINGS},
   'A thousand banners':{nationCount:180,cultureCount:48,familyCount:12,totalPopulation:2800000000,urbanization:.47,sizeInequality:.55,cityCount:1600},

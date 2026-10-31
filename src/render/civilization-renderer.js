@@ -221,6 +221,7 @@ export function drawCivilizationTerritories(ctx,renderer,from,to,camera=renderer
         }
       }}
     }
+    if(fill&&renderer.atlas&&TERRITORY_MODES.has(mode)&&options.atlas!==false)drawAtlas(ctx,renderer,world,suffix,shift,camera,band);
     if(borders&&renderer.overlays.borders!==false&&(CIVILIZATION_MODES.has(mode)||mode==='physical')){
       ctx.strokeStyle='rgba(31,43,43,.68)';ctx.lineWidth=(.65+.3*clamp((Math.log2(scale)-.5)/1.5,0,1))/scale;ctx.beginPath();for(const path of g.borders)if(visible(path.bounds,shift,camera))chain(path,shift);ctx.stroke();
     }
@@ -230,14 +231,44 @@ export function drawCivilizationTerritories(ctx,renderer,from,to,camera=renderer
   ctx.restore();
 }
 
-export function visibleTradeRoutes(routes,limit=80){
-  const ordered=[...routes].filter(r=>r.points?.length>=4).sort((a,b)=>b.volume-a.volume),chosen=new Set(),result=[];
-  // Global tonnage alone hides every inland network behind a few sea lanes.
-  // Reserve room for the strongest routes of every transport geography.
-  for(const [kind,share]of [['maritime',.4],['overland',.35],['river',.25]])for(const route of ordered.filter(r=>r.kind===kind).slice(0,Math.max(1,Math.floor(limit*share)))){chosen.add(route);result.push(route);}
-  for(const route of ordered)if(result.length<limit&&!chosen.has(route)){chosen.add(route);result.push(route);}
-  return result.slice(0,limit).sort((a,b)=>a.volume-b.volume);
+/* ---------- atlas lenses ---------- */
+const patternCache=new Map();
+/** Diagonal stripes in the colours of a mixed region, at a constant on-screen width. */
+function stripePattern(ctx,colors){
+  const key=colors.map(c=>c.join(',')).join('|');let canvas=patternCache.get(key);
+  if(!canvas&&typeof document!=='undefined'){const stripe=7,size=stripe*colors.length*2;canvas=document.createElement('canvas');canvas.width=canvas.height=size;const c=canvas.getContext('2d');
+    for(let k=-colors.length*2;k<colors.length*4;k++){c.fillStyle=`rgb(${colors[((k%colors.length)+colors.length)%colors.length].join(',')})`;c.beginPath();c.moveTo(k*stripe,0);c.lineTo(k*stripe+stripe,0);c.lineTo(k*stripe+stripe-size,size);c.lineTo(k*stripe-size,size);c.closePath();c.fill();}
+    patternCache.set(key,canvas);if(patternCache.size>400)patternCache.delete(patternCache.keys().next().value);}
+  if(!canvas)return null;const pattern=ctx.createPattern(canvas,'repeat');return pattern;
 }
+/** Province- or nation-level colours from live campaign data (see ui/atlas.js), painted over the political
+ * fill. Foreign nations can be muted to one neutral tone so the player's own country stands out. */
+function drawAtlas(ctx,renderer,world,suffix,shift,camera,band){
+  const a=renderer.atlas,scale=camera.scale;
+  if(a.focus){const own=geometry(world,'ownership'+suffix);if(own){ctx.beginPath();let any=false;for(const [id,polygons]of own.polygons){if(id===a.focus)continue;for(const p of polygons)if(visible(p.bounds,shift,camera)){traceRing(ctx,own,p,band,shift);any=true;}}if(any){ctx.fillStyle=a.mute||'rgb(126,130,124)';ctx.fill('evenodd');}}}
+  const g=geometry(world,(a.level==='nation'?'ownership':'province')+suffix);if(!g)return;
+  for(const [id,polygons]of g.polygons){
+    const stripes=a.stripes?.get(id),color=a.colors?.get(id);if(!stripes&&!color)continue;
+    ctx.beginPath();let any=false;for(const p of polygons)if(visible(p.bounds,shift,camera)){traceRing(ctx,g,p,band,shift);any=true;}if(!any)continue;
+    if(stripes){const pattern=stripePattern(ctx,stripes);if(pattern){pattern.setTransform?.(new DOMMatrix().scale(1/scale));ctx.fillStyle=pattern;ctx.fill('evenodd');continue;}}
+    ctx.fillStyle=Array.isArray(color)?`rgb(${color.join(',')})`:color;ctx.fill('evenodd');
+  }
+  if(a.level!=='nation'&&a.outline!==false){ctx.beginPath();for(const path of g.borders){if(a.focus){const ids=path.pair.split(':').map(Number);const provinces=a.provinceNation;if(provinces&&!ids.some(id=>provinces.get(id)===a.focus))continue;}if(visible(path.bounds,shift,camera))traceChain(ctx,path,band,shift);}ctx.strokeStyle='rgba(30,38,36,.55)';ctx.lineWidth=.7/scale;ctx.stroke();}
+}
+
+export function visibleTradeRoutes(routes,limit=80,{view=null,width=0,volume=null}={}){
+  const vol=r=>r.volume*(volume?.get(r.id)??1),ordered=[...routes].filter(r=>r.points?.length>=4&&(!view||routeInView(r,view,width))).sort((a,b)=>vol(b)-vol(a)),chosen=new Set(),result=[];
+  // Global tonnage alone hides every inland network behind a few sea lanes, and the busiest regions hide
+  // the rest of the world: reserve room for each transport geography and for every part of the view.
+  if(view){const bins=new Map(),bx=8,by=5;for(const r of ordered){const b=routeBounds(r),cx=((b[0]+b[2])/2-view[0]+width*4)%width,cy=(b[1]+b[3])/2,key=`${Math.min(bx-1,Math.max(0,Math.floor(cx/Math.max(1e-6,view[2]-view[0])*bx)))}:${Math.min(by-1,Math.max(0,Math.floor((cy-view[1])/Math.max(1e-6,view[3]-view[1])*by)))}`;if(!bins.has(key))bins.set(key,[]);bins.get(key).push(r);}
+    const per=Math.max(1,Math.floor(limit*.45/Math.max(1,bins.size)));for(const list of bins.values())for(const r of list.slice(0,per)){chosen.add(r);result.push(r);}}
+  for(const [kind,share]of [['maritime',.4],['overland',.35],['river',.25]])for(const route of ordered.filter(r=>r.kind===kind&&!chosen.has(r)).slice(0,Math.max(1,Math.floor(limit*share*(view?.55:1))))){chosen.add(route);result.push(route);}
+  for(const route of ordered)if(result.length<limit&&!chosen.has(route)){chosen.add(route);result.push(route);}
+  return result.slice(0,limit).sort((a,b)=>vol(a)-vol(b));
+}
+const boundsCache=new WeakMap();
+function routeBounds(r){const b=boundsCache.get(r);if(b&&b.points===r.points)return b.v;const p=r.points;let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;for(let j=0;j<p.length;j+=2){x0=Math.min(x0,p[j]);x1=Math.max(x1,p[j]);y0=Math.min(y0,p[j+1]);y1=Math.max(y1,p[j+1]);}const v=[x0,y0,x1,y1];boundsCache.set(r,{points:p,v});return v;}
+function routeInView(r,view,width){const b=routeBounds(r);if(b[3]<view[1]||b[1]>view[3])return false;for(let k=-2;k<=2;k++)if(b[2]+k*width>=view[0]&&b[0]+k*width<=view[2])return true;return false;}
 /** Split mixed journeys by the actual geography of each leg. A maritime
  * classification describes a route's economics, not every kilometer of it. */
 export function tradeRouteSegments(world,route,{landAt}={}){
@@ -250,10 +281,11 @@ export function tradeRouteSegments(world,route,{landAt}={}){
 const routeVisualCache=new WeakMap();
 export function drawTradeRoutes(ctx,renderer,from,to,camera=renderer.camera){
   const routes=renderer.world.meta.civilization?.tradeRoutes||[];if(!routes.length||!(renderer.overlays.tradeRoutes||renderer.mode==='trade'||['economy','economy-nations'].includes(renderer.mode)&&camera.scale>camera.minScale*2))return;
-  const zoom=Math.log2(renderer.world.width*camera.scale/850),limit=clamp(Math.round(35+zoom*25),25,200),selected=visibleTradeRoutes(routes,limit),max=Math.max(1,...selected.map(r=>r.volume));
+  const zoom=Math.log2(renderer.world.width*camera.scale/850),halfX=camera.width/(2*camera.scale),halfY=camera.height/(2*camera.scale),view=[camera.x-halfX,camera.y-halfY,camera.x+halfX,camera.y+halfY],volume=renderer.tradeVolume||null;
+  const limit=renderer.overlays.allRoutes?routes.length:clamp(Math.round(60+zoom*35),50,320),selected=visibleTradeRoutes(routes,limit,{view,width:renderer.world.width,volume}),vol=r=>r.volume*(volume?.get(r.id)??1),max=Math.max(1,...selected.map(vol));
   ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
-  for(const route of selected){const width=.95+Math.sqrt(route.volume/max)*2.1,refined=zoom>3,edits=renderer.world.meta.detail?.edits;let cached=routeVisualCache.get(route);if(!cached||cached.points!==route.points||cached.world!==renderer.world||cached.refined!==refined||cached.edits!==edits){cached={points:route.points,world:renderer.world,refined,edits,segments:tradeRouteSegments(renderer.world,route,{landAt:refined&&renderer.isVisualLand?(x,y)=>renderer.isVisualLand(x,y):null})};routeVisualCache.set(route,cached);}
-    for(const segment of cached.segments){const p=segment.points,color=segment.kind==='maritime'?'rgba(80,233,222,.95)':segment.kind==='river'?'rgba(72,177,235,.95)':'rgba(228,164,61,.96)';ctx.setLineDash(segment.kind==='maritime'?[6/camera.scale,4/camera.scale]:[]);for(let copy=from-1;copy<=to+1;copy++){ctx.beginPath();ctx.moveTo(p[0]+copy*renderer.world.width,p[1]);for(let j=2;j<p.length;j+=2)ctx.lineTo(p[j]+copy*renderer.world.width,p[j+1]);ctx.strokeStyle=segment.kind==='maritime'?'rgba(7,51,64,.8)':'rgba(57,57,39,.67)';ctx.lineWidth=(width+1.5)/camera.scale;ctx.stroke();ctx.strokeStyle=color;ctx.lineWidth=width/camera.scale;ctx.stroke();}}}
+  for(const route of selected){const v=volume?.get(route.id)??1,width=(.85+Math.sqrt(vol(route)/max)*2.3)*(v===0?.6:1),refined=zoom>3,edits=renderer.world.meta.detail?.edits;let cached=routeVisualCache.get(route);if(!cached||cached.points!==route.points||cached.world!==renderer.world||cached.refined!==refined||cached.edits!==edits){cached={points:route.points,world:renderer.world,refined,edits,segments:tradeRouteSegments(renderer.world,route,{landAt:refined&&renderer.isVisualLand?(x,y)=>renderer.isVisualLand(x,y):null})};routeVisualCache.set(route,cached);}
+    for(const segment of cached.segments){const p=segment.points,blocked=v===0,color=blocked?'rgba(229,96,80,.9)':segment.kind==='maritime'?'rgba(80,233,222,.95)':segment.kind==='river'?'rgba(72,177,235,.95)':'rgba(228,164,61,.96)';ctx.setLineDash(blocked?[2/camera.scale,4/camera.scale]:segment.kind==='maritime'?[6/camera.scale,4/camera.scale]:[]);for(let copy=from-1;copy<=to+1;copy++){ctx.beginPath();ctx.moveTo(p[0]+copy*renderer.world.width,p[1]);for(let j=2;j<p.length;j+=2)ctx.lineTo(p[j]+copy*renderer.world.width,p[j+1]);ctx.strokeStyle=segment.kind==='maritime'?'rgba(7,51,64,.8)':'rgba(57,57,39,.67)';ctx.lineWidth=(width+1.5)/camera.scale;ctx.stroke();ctx.strokeStyle=color;ctx.lineWidth=width/camera.scale;ctx.stroke();}}}
   ctx.restore();
 }
 

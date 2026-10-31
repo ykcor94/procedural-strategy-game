@@ -93,11 +93,7 @@ body.ministry-open[data-view="game"] .map-legend { left: calc(min(480px, 100vw -
 .event-log li.good { color: var(--text); } .event-log li.bad { color: var(--danger); } .event-log li.warn { color: var(--warning); }
 .event-log time { color: var(--text-3); font-variant-numeric: tabular-nums; }
 .tip { border-bottom: 1px dotted var(--text-3); cursor: help; position: relative; }
-.tip:hover::after, .tip:focus-visible::after {
-  content: attr(data-tip); position: absolute; z-index: var(--z-popover); left: 0; top: calc(100% + 6px); width: max-content; max-width: 260px; padding: 7px 10px;
-  background: var(--surface-raised); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); box-shadow: var(--shadow-md);
-  font-size: var(--fs-xs); font-weight: 400; line-height: 1.4; color: var(--text); text-transform: none; letter-spacing: 0; white-space: normal;
-}
+/* .tip text is shown by the shared tooltip (ui/tooltip.js). */
 
 /* Budget ------------------------------------------------------------- */
 .tax-row { padding: var(--space-2) 0; border-top: 1px solid var(--line); }
