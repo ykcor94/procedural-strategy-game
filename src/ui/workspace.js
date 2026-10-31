@@ -1,4 +1,4 @@
-import {$} from './controls.js';
+import {$,showToast} from './controls.js';
 
 /** Workspace conveniences: setting search, shortcut help and keyboard navigation.
  * Everything here is additive; the generator, editors and game keep their own keys. */
@@ -23,12 +23,22 @@ export function initWorkspace({renderer,getWorld}){
   // Layers and legend popovers close on an outside click.
   document.addEventListener('pointerdown',e=>{const bar=document.querySelector('.overlay-controls');if(bar&&!bar.hidden&&!bar.contains(e.target)&&!e.target.closest('#show-map-overlays'))$('hide-map-overlays')?.click();});
 
+  // P toggles every province layer at once, remembering which ones were on.
+  let savedProvinces=null;const PROVINCE_LAYERS=['provinces','provinceColors','provinceNames'];
+  function toggleProvinces(){
+    const on=PROVINCE_LAYERS.some(k=>renderer.overlays[k]);
+    if(on){savedProvinces=Object.fromEntries(PROVINCE_LAYERS.map(k=>[k,!!renderer.overlays[k]]));for(const k of PROVINCE_LAYERS)renderer.overlays[k]=false;}
+    else{const restore=savedProvinces||{provinces:true,provinceColors:false,provinceNames:true};for(const k of PROVINCE_LAYERS)renderer.overlays[k]=restore[k];}
+    for(const k of PROVINCE_LAYERS){const box=$(`overlay-${k}`);if(box)box.checked=!!renderer.overlays[k];}
+    renderer.draw();showToast(on?'Provinces hidden (P)':'Provinces shown (P)');
+  }
   const typing=e=>e.target.matches('input,select,textarea,[contenteditable]')||e.ctrlKey||e.metaKey||e.altKey;
   document.addEventListener('keydown',e=>{
     if(typing(e)||document.querySelector('dialog[open]'))return;
     const view=document.body.dataset.view||'generator',key=e.key;
     if(key==='?'){e.preventDefault();shortcuts.showModal();return;}
     if(key==='l'||key==='L'){e.preventDefault();$('show-map-overlays')?.click();return;}
+    if((key==='p'||key==='P')&&getWorld()?.meta.civilization&&view!=='selection'){e.preventDefault();toggleProvinces();return;}
     if(key==='k'||key==='K'){e.preventDefault();if(view==='game')$('game-map-key').click();else{const legend=$('map-legend');legend.classList.toggle('collapsed');}return;}
     if(view==='generator'){
       if(key==='/'){e.preventDefault();if(document.querySelector('.workspace').classList.contains('settings-hidden'))$('toggle-settings').click();search.focus();return;}
