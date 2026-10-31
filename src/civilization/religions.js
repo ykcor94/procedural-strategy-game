@@ -1,6 +1,7 @@
 import {clamp,seededRandom,seededColor,generateName,languageAt,xy,neighbors,Queue,pointDistance} from './society-utils.js';
 import {fractalNoise} from '../generation/noise.js';
 import {hashSeed} from '../core/random.js';
+import {stateFaithFactor} from './faith.js';
 export const NO_RELIGION_ID=65534;
 const TYPES=['Monotheistic','Polytheistic','Animist','Ancestor tradition','Philosophical','Dualist','Pantheistic'];
 const VALUES=['hospitality','scholarship','stewardship','pilgrimage','ritual arts','ancestral memory','communal service','craftsmanship','contemplation','charitable works','sacred law','seasonal festivals','restraint','maritime fellowship'];
@@ -9,8 +10,10 @@ const SECT_MODIFIERS=['Orthodox','Reformed','Renewed','Old','New','Contemplative
 function traditionName(world,family,attempt=0){const language=languageAt(world,family.homeland),r=seededRandom(world.meta.civilization.seed,`tradition-name:${family.id}:${attempt}`),stem=generateName(language,world.meta.civilization.seed,`tradition:${family.id}:${attempt}`,'religion'),suffix=r()<.64?'ism':language.phonology.suffixes[Math.floor(r()*language.phonology.suffixes.length)];return stem+(stem.toLowerCase().endsWith(suffix.toLowerCase())?'':suffix);}
 function sectColor(color,index){const base=[1,3,5].map(i=>parseInt(color.slice(i,i+2),16)),offset=((index*7)%11-5)*1.05;return '#'+base.map((v,k)=>Math.round(clamp(v+offset+(k===0?1:k===2?-1:0),0,255)).toString(16).padStart(2,'0')).join('');}
 /** Keep a tradition's names and near-identical branch colors coherent after language or family edits. */
-export function renameReligionIdentities(world){
- const civ=world.meta?.civilization;if(!civ?.religionFamilies||!civ.religions)return world;const used=new Set();
+const religionKey=name=>String(name||'').normalize('NFD').replace(/\p{Diacritic}/gu,'').toLowerCase().replace(/[^a-z]/g,'').replace(/(.)\1+/g,'$1');
+/** `reserved` holds identity keys (peoples, languages, nations) that no tradition may take. */
+export function renameReligionIdentities(world,reserved=new Set()){
+ const civ=world.meta?.civilization;if(!civ?.religionFamilies||!civ.religions)return world;const usedKeys=new Set(reserved),used={has:name=>usedKeys.has(religionKey(name)),add:name=>usedKeys.add(religionKey(name))};
  for(const family of civ.religionFamilies){if(family.secular){family.name='Unaffiliated';continue;}if(!family.manual?.name){let attempt=0,name;do{name=traditionName(world,family,attempt++);}while(used.has(name)&&attempt<100);family.name=name;}used.add(family.name);const branches=civ.religions.filter(religion=>!religion.secular&&religion.family===family.id),primary=branches[0];family.primaryReligion=primary?.id||0;family.type=primary?.type||family.type;let ordinal=0;
   for(const religion of branches){religion.isSect=religion!==primary;religion.parentReligion=religion.isSect?primary?.id||0:0;religion.traditionName=family.name;if(religion.isSect)ordinal++;if(!religion.manual?.color)religion.color=religion.isSect?sectColor(family.color,ordinal):family.color;
    if(!religion.manual?.name){if(!religion.isSect){religion.name=family.name;religion.sectName='';}else{const r=seededRandom(civ.seed,`sect-name:${religion.id}`),origin=xy(religion.homeland,world.width),home=xy(family.homeland,world.width),dx=origin.x-home.x-Math.round((origin.x-home.x)/world.width)*world.width,dy=origin.y-home.y,directions=[Math.abs(dx)>Math.abs(dy)?dx>0?'Eastern':'Western':dy>0?'Southern':'Northern','High','Coastal','River','Mountain'],doctrine=SECT_MODIFIERS[Math.floor(r()*SECT_MODIFIERS.length)];let modifier=ordinal===1&&r()<.45?directions[0]:doctrine,name=`${modifier} ${family.name}`,attempt=0;while(used.has(name)&&attempt<150){modifier=`${directions[attempt%directions.length]} ${SECT_MODIFIERS[(Math.floor(r()*SECT_MODIFIERS.length)+attempt)%SECT_MODIFIERS.length]}`;name=`${modifier} ${family.name}`;attempt++;}religion.name=name;religion.sectName=modifier;}}
@@ -67,16 +70,16 @@ export function applyNoReligion(world,{refresh=false}={}){
   const field=new Float32Array(n),developed=new Float32Array(n),mask=new Float32Array(n);
   for(let i=0;i<n;i++){if(!l.ownership[i]||l.elevation[i]<=0||l.lake?.[i])continue;const p=profiles.get(l.ownership[i]);if(!p)continue;field[i]=p.legacy;developed[i]=p.development;mask[i]=1;}
   const radius=Math.max(2,Math.round(w/110)),blurred=boxBlur(field,w,h,radius,2),blurredDevelopment=boxBlur(developed,w,h,radius,2),weight=boxBlur(mask,w,h,radius,2),REFERENCE=.82;
-  const raw=new Float32Array(n);let people=0,secular=0;
+  const raw=new Float32Array(n),faith=new Map(civ.nations.map(nation=>[nation.id,stateFaithFactor(nation)]));let people=0,secular=0;
   for(let i=0;i<n;i++){if(!l.ownership[i]||!l.culture[i]||l.elevation[i]<=0||l.lake?.[i]||!l.religion[i]||!mask[i])continue;
     const x=i%w,y=Math.floor(i/w),urbanShare=clamp((urban.get(i)||0)/Math.max(1,l.population[i]),0,1),regional=fractalNoise((x+.5)/w,(y+.5)/h,4,2,seed,.5),base=weight[i]>0?blurred[i]/weight[i]:field[i];
     // Calibrated at a reference development level without urban effects, so the
     // setting is the typical unaffiliated share while development, cities and
     // trade still raise it (and their absence lowers it) where they occur.
-    const development=weight[i]>0?blurredDevelopment[i]/weight[i]:REFERENCE;raw[i]=base*Math.exp(.55*regional)*(1+.12*(l.tradeAccess?.[i]||0));developed[i]=Math.pow(development/REFERENCE,1.6)*(1+.6*urbanShare);people+=l.population[i];secular+=l.population[i]*Math.min(.86,raw[i]);}
+    const development=weight[i]>0?blurredDevelopment[i]/weight[i]:REFERENCE;raw[i]=base*Math.exp(.55*regional)*(1+.12*(l.tradeAccess?.[i]||0))*(faith.get(l.ownership[i])??1);developed[i]=Math.pow(development/REFERENCE,1.6)*(1+.6*urbanShare);people+=l.population[i];secular+=l.population[i]*Math.min(.86,raw[i]);}
   let scale=secular>0?rate*people/secular:0;for(let pass=0;pass<4&&secular>0;pass++){let s=0;for(let i=0;i<n;i++)if(raw[i])s+=l.population[i]*Math.min(.86,raw[i]*scale);if(!s)break;scale*=rate*people/s;}
   for(let i=0;i<n;i++){if(!raw[i])continue;
-    let share=rate>=1?.96:clamp(raw[i]*scale*developed[i],0,.86);if(share<.01)continue;
+    const factor=faith.get(l.ownership[i])??1;let share=rate>=1?.96*Math.min(1,factor):clamp(raw[i]*scale*developed[i],0,factor<1?.86*factor:.86);if(share<.01)continue;
     if(share>=.5){l.religionMinority[i]=l.religion[i];l.religion[i]=NO_RELIGION_ID;l.religionMinorityShare[i]=1-share;}
     // Secular residents are recorded as the minority unless a faith minority is larger.
     else if(!l.religionMinority[i]||l.religionMinorityShare[i]<share){l.religionMinority[i]=NO_RELIGION_ID;l.religionMinorityShare[i]=share;}

@@ -4,6 +4,7 @@ import {regenerateProvinces,repairProvinces,createProvince,transferProvinceCells
 import {generateEconomy,recomputeEconomy,initializeEconomicProfiles,generateTradeRoutes,deriveUrbanization,applyReligiousTechnology,repairTradeRoutes} from './economy.js';
 import {generateReligions,reconcileReligions,renameReligionIdentities,applyNoReligion,NO_RELIGION_ID} from './religions.js';
 import {deriveCityDemographics,censusSociety} from './demographics.js';
+import {ensureDistinctIdentityNames} from './identity.js';
 export {regenerateProvinces,repairProvinces,createProvince,transferProvinceCells,generateEconomy,generateTradeRoutes,generateReligions,applyNoReligion,NO_RELIGION_ID};
 export const SOCIETY_LAYERS=['province','religion','religionMinority','religionMinorityShare','economicOutput','productivity','tradeAccess'];
 export function generateStartDate(seed,era='modern'){const r=seededRandom(seed,'starting-calendar'),year=era==='ancient'?120+Math.floor(r()*1200):era==='medieval'?900+Math.floor(r()*700):era==='future'?2100+Math.floor(r()*900):1940+Math.floor(r()*360),month=1+Math.floor(r()*12),day=1+Math.floor(r()*28);return `${String(year).padStart(4,'0')}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;}
@@ -25,12 +26,12 @@ export function generateSociety(world,scope='all',report=()=>{},hooks={}){
   applyNoReligion(world,{refresh:economic||scope==='religions'});
   // A stored material baseline prevents faith bonuses accumulating on unrelated rerolls.
   if(rebuildProfiles)applyReligiousTechnology(world);
-  recomputeEconomy(world);deriveCityDemographics(world);censusSociety(world);civ.revision=(civ.revision||0)+1;report('society',.98,'Measuring regional economies, faiths, languages and urban populations');return world;
+  recomputeEconomy(world);deriveCityDemographics(world);censusSociety(world);ensureDistinctIdentityNames(world);civ.revision=(civ.revision||0)+1;report('society',.98,'Measuring regional economies, faiths, languages and urban populations');return world;
 }
 export function recomputeSociety(world,options={}){
   const civ=world.meta.civilization;if(!civ?.societyVersion)return world;calendar(civ);if(options.repairProvinces!==false)repairProvinces(world);reconcileReligions(world);
   const cityIds=new Set(civ.cities.map(c=>c.id)),oldRouteCount=civ.tradeRoutes?.length||0;civ.tradeRoutes=(civ.tradeRoutes||[]).filter(r=>cityIds.has(r.from)&&cityIds.has(r.to));if(!world.layers.tradeAccess)generateTradeRoutes(world);else repairTradeRoutes(world,{networkChanged:oldRouteCount!==civ.tradeRoutes.length});
-  if(civ.nations.some(n=>!Number.isFinite(n.baseProductivity)||n.economicProfile?.government!==n.government))initializeEconomicProfiles(world,{onlyChanged:true});recomputeEconomy(world);applyNoReligion(world);deriveCityDemographics(world);censusSociety(world);return world;
+  if(civ.nations.some(n=>!Number.isFinite(n.baseProductivity)||n.economicProfile?.government!==n.government))initializeEconomicProfiles(world,{onlyChanged:true});recomputeEconomy(world);applyNoReligion(world);deriveCityDemographics(world);censusSociety(world);ensureDistinctIdentityNames(world);return world;
 }
 export function migrateSociety(world){const civ=world.meta?.civilization;if(!civ)return world;if(!civ.societyVersion||SOCIETY_LAYERS.some(key=>!world.layers[key]))return generateSociety(world,'migrate');const revision=civ.provinceRevision,province=world.layers.province.slice(),parents=new Map(civ.provinces.map(p=>[p.id,p.nation]));recomputeSociety(world);if(civ.provinces.length===parents.size&&civ.provinces.every(p=>parents.get(p.id)===p.nation)&&province.every((id,i)=>world.layers.province[i]===id))civ.provinceRevision=revision;return world;}
 export function validateSociety(world){
