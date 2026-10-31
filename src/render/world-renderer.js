@@ -172,7 +172,7 @@ export class WorldRenderer extends MapRenderer {
       this.detailStatus={level,ready,total:tiles.length,pixelKm:40075/(TILE_SIZE*2*2**level),...this.tiles.stats};
     }else {this.tiles.queue=[];this.detailStatus={level:0,ready:0,total:0,pixelKm:40075/w,...this.tiles.stats,global:true};}
     this.refinedPoliticalMask=true;this.buildMask(tiles,options,from,to);
-    const zoom=Math.log2(w*c.scale/850),reveal=this.updateTerrainReveal(civil,zoom),tint=1-.75*reveal;
+    const zoom=Math.log2(w*c.scale/850),revealed=this.updateTerrainReveal(civil,zoom),reveal=this.atlas&&TERRITORY_MODES.has(this.mode)?Math.min(revealed,.2):revealed,tint=1-.75*reveal;
     // Distant political atlases use calm water; the physical ocean appears with
     // the terrain reveal. Both use the same refined shoreline and lake mask.
     if(civil&&reveal<1){const water=this.plane('work',false);water.fillStyle='#142d3b';water.fillRect(0,0,water.canvas.width,water.canvas.height);water.globalCompositeOperation='destination-out';water.drawImage(this.landClip,0,0);water.globalCompositeOperation='source-over';this.composite(ctx,'work',1-reveal);}
@@ -181,7 +181,7 @@ export class WorldRenderer extends MapRenderer {
     if(civil&&this.overlays.borders!==false){const border=this.plane('features');drawCivilizationTerritories(border,this,from,to,c,{pass:'borders',extended:true});this.clipPlane('features');this.composite(ctx,'features');}
     if(this.overlays.coasts||civil&&reveal>.1&&this.overlays.borders!==false){
       const edge=this.overlays.coasts?this.innerEdge(this.landClip,civil&&reveal>.1?3.5:1):(this.plane('edge',false),this.planes.edge);
-      if(civil&&reveal>.1){const national=this.plane('national');drawCivilizationTerritories(national,this,from,to,c,{pass:'fill',mode:'political',extended:true});this.clipPlane('national');const borders=this.plane('features');if(this.overlays.borders!==false)drawCivilizationTerritories(borders,this,from,to,c,{pass:'borderMask',width:4,extended:true});borders.setTransform(1,0,0,1,0,0);borders.drawImage(edge,0,0);borders.globalCompositeOperation='source-in';borders.drawImage(this.planes.national,0,0);borders.globalCompositeOperation='source-over';this.composite(ctx,'features',clamp((reveal-.1)*2.4,0,1)*.95);}
+      if(civil&&reveal>.1){const national=this.plane('national');drawCivilizationTerritories(national,this,from,to,c,{pass:'fill',mode:'political',extended:true,atlas:false});this.clipPlane('national');const borders=this.plane('features');if(this.overlays.borders!==false)drawCivilizationTerritories(borders,this,from,to,c,{pass:'borderMask',width:4,extended:true});borders.setTransform(1,0,0,1,0,0);borders.drawImage(edge,0,0);borders.globalCompositeOperation='source-in';borders.drawImage(this.planes.national,0,0);borders.globalCompositeOperation='source-over';this.composite(ctx,'features',clamp((reveal-.1)*2.4,0,1)*.95);}
       else{const e=this.planes.edge.getContext('2d');e.globalCompositeOperation='source-in';e.fillStyle='rgba(20,43,48,.6)';e.fillRect(0,0,e.canvas.width,e.canvas.height);e.globalCompositeOperation='source-over';this.composite(ctx,'edge');}
     }
     const features=this.plane('features');if(tiles&&this.overlays.sprites&&(['physical','biome'].includes(this.mode)||civil&&reveal>.25)){const fade=clamp(zoom-5,0,1);features.globalAlpha=fade*fade*(3-2*fade);this.tiles.draw(features,tiles,options,w,h,'sprites');features.globalAlpha=1;}drawCivilizationLabels(features,this,from,to,c,{pass:'sprites'});this.clipPlane('features');this.composite(ctx,'features');

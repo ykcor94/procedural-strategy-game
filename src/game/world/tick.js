@@ -21,6 +21,7 @@ export function worldMonth(world,ws,econ,snap,{demo=null,date,emit=()=>{}}={}){
   const playerOut=new Float64Array(INDUSTRY_COUNT);for(let k=0;k<INDUSTRY_COUNT;k++)playerOut[k]=snap.industry[k].out;
   const res=solveMarket(world,ws,{playerOut,playerTariff:snap.trade.tariff,playerTariff0:Math.min(DEFAULT_RATES.tariff,snap.trade.tariffCap)});
   updatePrices(ws,res);
+  (ws.goods.hist||=[]).push({d:ws.day,p:ws.goods.price.map(v=>+v.toFixed(3))});if(ws.goods.hist.length>120)ws.goods.hist.shift();
   const cache=new Map();for(const n of Object.values(ws.nations))cache.set(n.id,industryEffects(world,ws,res,n.id));effectsCache.set(ws,cache);
   // AI nations.
   for(const n of Object.values(ws.nations))aiMonth(world,ws,n,ctx.byId.get(n.id),cache.get(n.id));

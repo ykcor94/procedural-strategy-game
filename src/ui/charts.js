@@ -38,12 +38,12 @@ export function treemap(items,{width=100,height=170,className=''}={}){
   return `<div class="treemap ${className}" style="height:${height}px">${cells.map(({i,x,y,w,h})=>`<button class="tm-cell" style="left:${(x/width*100).toFixed(3)}%;top:${(y/height*100).toFixed(3)}%;width:${(w/width*100).toFixed(3)}%;height:${(h/height*100).toFixed(3)}%;--c:${i.color}"${i.act?` data-act="${i.act}"`:''}${Object.entries(i.data||{}).map(([k,v])=>` data-${k}="${esc(v)}"`).join('')}${attrTip(i.tip||i.label)}>${w/width*100>9&&h>26?`<span>${i.icon||''}<b>${esc(i.label)}</b>${h>44?`<small>${esc(i.sub||'')}</small>`:''}</span>`:''}</button>`).join('')}</div>`;
 }
 /** Population pyramid from five bands, optionally against a previous census outline. */
-export function pyramid(bands,{previous=null,labels=['0–14','15–29','30–44','45–64','65+'],width=300,height=130,format=v=>String(v)}={}){
-  const total=bands.reduce((s,v)=>s+v,0)||1,prevTotal=previous?previous.reduce((s,v)=>s+v,0)||1:1,max=Math.max(...bands.map(v=>v/total),...(previous||[]).map(v=>v/prevTotal),.01),rowH=(height-10)/bands.length,mid=width/2,half=width/2-34;
+export function pyramid(bands,{previous=null,labels=['0–14','15–29','30–44','45–64','65+'],width=520,height=170,format=v=>String(v)}={}){
+  const total=bands.reduce((s,v)=>s+v,0)||1,prevTotal=previous?previous.reduce((s,v)=>s+v,0)||1:1,max=Math.max(...bands.map(v=>v/total),...(previous||[]).map(v=>v/prevTotal),.01),rowH=(height-10)/bands.length,mid=width/2,half=width/2-30;
   let svg=`<svg class="chart pyramid" viewBox="0 0 ${width} ${height}" role="img" aria-label="Age structure">`;
   bands.slice().reverse().forEach((v,j)=>{const k=bands.length-1-j,share=v/total,len=share/max*half,y=4+j*rowH;
-    svg+=`<rect class="male" x="${f1(mid-14-len)}" y="${f1(y+1)}" width="${f1(len)}" height="${f1(rowH-3)}" rx="2"/><rect class="female" x="${f1(mid+14)}" y="${f1(y+1)}" width="${f1(len)}" height="${f1(rowH-3)}" rx="2"/>`;
-    if(previous){const p=previous[k]/prevTotal/max*half;svg+=`<path class="prev" d="M${f1(mid-14-p)},${f1(y+1)}v${f1(rowH-3)}M${f1(mid+14+p)},${f1(y+1)}v${f1(rowH-3)}"/>`;}
+    svg+=`<rect class="male" x="${f1(mid-24-len)}" y="${f1(y+1)}" width="${f1(len)}" height="${f1(rowH-3)}" rx="2"/><rect class="female" x="${f1(mid+24)}" y="${f1(y+1)}" width="${f1(len)}" height="${f1(rowH-3)}" rx="2"/>`;
+    if(previous){const p=previous[k]/prevTotal/max*half;svg+=`<path class="prev" d="M${f1(mid-24-p)},${f1(y+1)}v${f1(rowH-3)}M${f1(mid+24+p)},${f1(y+1)}v${f1(rowH-3)}"/>`;}
     svg+=`<text class="axis" x="${mid}" y="${f1(y+rowH/2+3)}" text-anchor="middle">${esc(labels[k])}</text><rect class="hover" x="0" y="${f1(y)}" width="${width}" height="${f1(rowH)}"${attrTip(`<b>${esc(labels[k])}</b><div>${esc(format(v))} · ${(share*100).toFixed(1)}%</div>${previous?`<div class="dim">last census ${(previous[k]/prevTotal*100).toFixed(1)}%</div>`:''}`,true)}/>`;});
   return svg+'</svg>';
 }

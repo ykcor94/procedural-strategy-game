@@ -59,7 +59,7 @@ export function createWorldState(world,econ){
       demo:createNationDemography(world,n,pr),census:{interval:pers.census,last:0,next:Math.round(pr()*pers.census*365),view:null},hist:[{d:0,gdp:Math.round(n.economicOutput||0),pop:Math.round(n.population||0)}],events:0};
     nations[n.id].census.view=snapshotNation(nations[n.id],0);
   }
-  const ws={version:WORLD_VERSION,day:0,player:econ.nation,goods:{price:new Array(GOOD_COUNT).fill(1),calib:null},nations,relations:{},terms:{},sanctions:[],blocs:[],news:[],cycle:r()*Math.PI*2,shocks:[],nextId:1};
+  const ws={version:WORLD_VERSION,day:0,player:econ.nation,goods:{price:new Array(GOOD_COUNT).fill(1),calib:null,hist:[]},nations,relations:{},terms:{},sanctions:[],blocs:[],news:[],cycle:r()*Math.PI*2,shocks:[],nextId:1};
   for(const n of ctx.nations)if(n.id!==econ.nation)ws.relations[n.id]=+clamp(ctx.affinity(econ.nation,n.id)+(r()-.5)*20,-60,70).toFixed(1);
   foundBlocs(world,ws,ctx,r);
   return ws;

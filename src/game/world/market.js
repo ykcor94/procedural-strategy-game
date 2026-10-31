@@ -104,7 +104,7 @@ export function updatePrices(ws,res){
 
 /* ---------- national effects ---------- */
 /** Relative satisfaction of a nation's demand against the start (1 = as supplied as at the start). */
-export function relativeSat(ws,res,id){const s=res.sat.get(id),n=ws.nations[id];if(!s||!n?.sat0)return new Float32Array(GOOD_COUNT).fill(1);return Float32Array.from(s,(v,g)=>clamp(v/Math.max(.05,n.sat0[g]),0,1.25));}
+export function relativeSat(ws,res,id){const s=res.sat.get(id),n=ws.nations[id];if(!s||!n?.sat0)return new Float32Array(GOOD_COUNT).fill(1);return Float32Array.from(s,(v,g)=>{const r=v/Math.max(.05,n.sat0[g]);return Math.abs(r-1)<2e-3?1:clamp(r,0,1.25);});}
 /** Industry-level effects: input availability and output price, each relative to the start. */
 export function industryEffects(world,ws,res,id){
   const rs=relativeSat(ws,res,id),mix=nationMix(world,id),P=ws.goods.price,avail=new Float32Array(INDUSTRY_COUNT),price=new Float32Array(INDUSTRY_COUNT);

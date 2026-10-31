@@ -246,6 +246,7 @@ function stripePattern(ctx,colors){
 function drawAtlas(ctx,renderer,world,suffix,shift,camera,band){
   const a=renderer.atlas,scale=camera.scale;
   if(a.focus){const own=geometry(world,'ownership'+suffix);if(own){ctx.beginPath();let any=false;for(const [id,polygons]of own.polygons){if(id===a.focus)continue;for(const p of polygons)if(visible(p.bounds,shift,camera)){traceRing(ctx,own,p,band,shift);any=true;}}if(any){ctx.fillStyle=a.mute||'rgb(126,130,124)';ctx.fill('evenodd');}}}
+  if(a.nationColors){const own=geometry(world,'ownership'+suffix);if(own)for(const [id,polygons]of own.polygons){const color=a.nationColors.get(id);if(!color)continue;ctx.beginPath();let any=false;for(const p of polygons)if(visible(p.bounds,shift,camera)){traceRing(ctx,own,p,band,shift);any=true;}if(any){ctx.fillStyle=Array.isArray(color)?`rgb(${color.join(',')})`:color;ctx.fill('evenodd');}}}
   const g=geometry(world,(a.level==='nation'?'ownership':'province')+suffix);if(!g)return;
   for(const [id,polygons]of g.polygons){
     const stripes=a.stripes?.get(id),color=a.colors?.get(id);if(!stripes&&!color)continue;
@@ -253,6 +254,7 @@ function drawAtlas(ctx,renderer,world,suffix,shift,camera,band){
     if(stripes){const pattern=stripePattern(ctx,stripes);if(pattern){pattern.setTransform?.(new DOMMatrix().scale(1/scale));ctx.fillStyle=pattern;ctx.fill('evenodd');continue;}}
     ctx.fillStyle=Array.isArray(color)?`rgb(${color.join(',')})`:color;ctx.fill('evenodd');
   }
+  if(a.highlight){const polygons=g.polygons.get(a.highlight);if(polygons){ctx.beginPath();for(const p of polygons)if(visible(p.bounds,shift,camera))traceRing(ctx,g,p,band,shift);ctx.fillStyle='rgba(255,241,189,.28)';ctx.fill('evenodd');ctx.strokeStyle='#fff1bd';ctx.lineWidth=2.2/scale;ctx.stroke();}}
   if(a.level!=='nation'&&a.outline!==false){ctx.beginPath();for(const path of g.borders){if(a.focus){const ids=path.pair.split(':').map(Number);const provinces=a.provinceNation;if(provinces&&!ids.some(id=>provinces.get(id)===a.focus))continue;}if(visible(path.bounds,shift,camera))traceChain(ctx,path,band,shift);}ctx.strokeStyle='rgba(30,38,36,.55)';ctx.lineWidth=.7/scale;ctx.stroke();}
 }
 

@@ -32,3 +32,10 @@ export const trend=(v,digits=1)=>`<span class="trend ${tone(v)}">${v>0?'▲':v<0
 export const stabilityClass=s=>s<25?'crisis':s<45?'unrest':s<70?'steady':s<85?'confident':'golden';
 export const dayLabel=days=>days>=730?`${(days/365).toFixed(1)} years`:days>=60?`${Math.round(days/30)} months`:`${Math.max(1,Math.round(days))} days`;
 export const paybackLabel=y=>!Number.isFinite(y)?'—':y>60?'60+ years':`${y.toFixed(1)} years`;
+
+/** Dashboard tile: icon, label, big value, sub line, optional sparkline and trend chip; clickable with `act`. */
+export const tile=(label,value,{sub='',icon='',spark='',chip='',tip='',act='',data={},tone=''}={})=>`<${act?'button':'div'} class="tile ${tone}"${act?` data-act="${act}"`:''}${Object.entries(data).map(([k,v])=>` data-${k}="${esc(v)}"`).join('')}${tip?` data-tip="${esc(tip)}"`:''}><span class="tile-head">${icon}<span>${label}</span>${chip}</span><strong>${value}</strong>${sub?`<small>${sub}</small>`:''}${spark}</${act?'button':'div'}>`;
+/** Coloured change chip. `good` flips the colour sense for figures where down is good. */
+export const chip=(v,{digits=1,good=1,suffix='%',scale=100,tip=''}={})=>{const shown=(Math.abs(v)*scale).toFixed(digits),zero=+shown===0,t=zero?'flat':v*good>0?'up':'down';return `<span class="chip ${t}"${tip?` data-tip="${esc(tip)}"`:''}>${zero?'■':v>0?'▲':'▼'} ${shown}${suffix}</span>`;};
+export const subtabs=(items,active,act='sub')=>`<div class="subtabs" role="tablist">${items.map(([id,label,icon])=>`<button role="tab" data-act="${act}" data-sub="${id}" aria-selected="${active===id}">${icon||''}${label}</button>`).join('')}</div>`;
+export const section=(title,extra='')=>`<div class="info-section-title">${title}${extra?`<span class="section-extra">${extra}</span>`:''}</div>`;

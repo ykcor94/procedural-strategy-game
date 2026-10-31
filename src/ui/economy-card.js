@@ -18,14 +18,21 @@ function staticBreakdown(world,kind,entity){
   const outs=new Float64Array(INDUSTRY_COUNT);let total=0;for(const p of places.filter(Boolean)){for(let k=0;k<INDUSTRY_COUNT;k++)outs[k]+=p.out0[k];total+=p.total0;}
   return total>0?{outs,total,live:null}:null;
 }
-export function economyBreakdown(world,kind,entity){return provider?.(kind,entity)||staticBreakdown(world,kind,entity);}
+export function economyBreakdown(world,kind,entity){const live=provider?.(kind,entity);if(live?.foreign)return staticBreakdown(world,kind,entity);return live||staticBreakdown(world,kind,entity);}
+/** Live summary of a foreign nation during a campaign: output trend, growth, population (as of its census
+ * unless live figures are enabled), relation and trade. */
+function foreignSection(f){
+  const pts=f.hist.map(h=>h.gdp),lo=Math.min(...pts),hi=Math.max(...pts),line=pts.length>1?`<svg class="spark" viewBox="0 0 120 26" preserveAspectRatio="none"><polyline points="${pts.map((v,i)=>`${(i/(pts.length-1)*120).toFixed(1)},${(24-(v-lo)/((hi-lo)||1)*22).toFixed(1)}`).join(' ')}"/></svg>`:'';
+  return `<div class="info-section-title">Now</div><div class="econ-card foreign-live"><div class="econ-head"><span>${esc(f.style)} economy</span><strong>${trend(f.growth)} a year</strong></div>${line}<p class="econ-foot"><span>Output <strong>${f.money(f.gdp)}</strong></span><span>Since the start <strong>${trend(f.gdp0?f.gdp/f.gdp0-1:0)}</strong></span><span>Stability <strong>${Math.round(f.stab)}</strong></span><span>People <strong>${compact(f.pop)}</strong>${f.censusYear?` <small class="dim">census ${f.censusYear}</small>`:''}</span><span>Population growth <strong>${trend(f.popGrowth||0)}</strong></span><span>Relation with you <strong>${Math.round(f.relation)}</strong></span>${f.trade?`<span>Trade <strong>${f.money(f.trade.exports)} out · ${f.money(f.trade.imports)} in</strong></span>`:''}</p><div class="econ-actions"><button data-ministry-partner="${f.id}">Trade & diplomacy ▸</button></div></div>`;
+}
 
 export function economyCard(world,kind,entity){
-  const b=economyBreakdown(world,kind,entity);if(!b)return '';
+  const live=kind==='nation'?provider?.(kind,entity):null,prefix=live?.foreign?foreignSection({...live.foreign,id:entity.id}):'';
+  const b=economyBreakdown(world,kind,entity);if(!b)return prefix;
   const shares=Array.from(b.outs,v=>v/b.total),identity=economicIdentity(shares),sectors=SECTORS.map(s=>({...s,share:INDUSTRIES.filter(i=>i.sector===s.id).reduce((t,i)=>t+shares[i.index],0)}));
   const strengths=identity.strengths.map(id=>INDUSTRIES.find(i=>i.id===id).name);
   const typical=new Map(identity.ranked.map(r=>[r.id,r.quotient]));
-  let html=`<div class="info-section-title">Economy by industry</div><div class="econ-card">`;
+  let html=prefix+`<div class="info-section-title">Economy by industry</div><div class="econ-card">`;
   html+=`<div class="econ-head"><span>${b.live?'Live economy':'Starting economy'}</span><strong>${strengths.length?esc(strengths.slice(0,2).join(' · ')):'Diversified'}</strong></div>`;
   html+=`<div class="stack sector-stack" role="img" aria-label="${esc(sectors.map(s=>`${s.name} ${pct(s.share,0)}`).join(', '))}">${sectors.map(s=>`<span style="flex:${Math.max(.001,s.share)};background:${s.color}" title="${esc(s.name)} · ${pct(s.share)}">${s.share>.12?`${esc(s.name.split(' ')[0])} ${pct(s.share,0)}`:''}</span>`).join('')}</div>`;
   for(const s of sectors){
