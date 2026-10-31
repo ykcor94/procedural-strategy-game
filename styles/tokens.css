@@ -1,0 +1,106 @@
+/* Design tokens. Themes only redefine these values; components never hard-code colours. */
+:root {
+  color-scheme: dark;
+  --font-ui: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --font-mono: "Cascadia Mono", "SF Mono", ui-monospace, Consolas, monospace;
+
+  --fs-2xs: 11px;
+  --fs-xs: 11.5px;
+  --fs-sm: 12.5px;
+  --fs-md: 13.5px;
+  --fs-lg: 15px;
+  --fs-xl: 19px;
+  --fs-2xl: 25px;
+  --fs-3xl: 32px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --radius-sm: 6px;
+  --radius-md: 9px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  --header-h: 54px;
+  --toolbar-h: 46px;
+  --footer-h: 28px;
+  --left-w: 312px;
+  --right-w: 352px;
+
+  --ease: cubic-bezier(.2, .7, .2, 1);
+  --fast: 120ms;
+  --slow: 240ms;
+
+  --z-map-ui: 5;
+  --z-popover: 20;
+  --z-drawer: 40;
+  --z-overlay: 60;
+  --z-toast: 90;
+
+  /* Dark (default): slate-green instrument panel with brass accents. */
+  --bg: #0e1514;
+  --surface: #141d1c;
+  --surface-2: #1a2523;
+  --surface-3: #22302d;
+  --surface-raised: #1d2927;
+  --glass: rgba(20, 29, 28, .92);
+  --line: #273532;
+  --line-strong: #364945;
+  --text: #e5ebe5;
+  --text-2: #aab8b1;
+  --text-3: #7d8e88;
+  --accent: #d9c48f;
+  --accent-strong: #ecdcac;
+  --accent-soft: rgba(217, 196, 143, .14);
+  --accent-ink: #1c1708;
+  --link: #8ccfc0;
+  --focus: #8ccfc0;
+  --positive: #86c79a;
+  --warning: #e3b766;
+  --danger: #e5826f;
+  --danger-soft: rgba(229, 130, 111, .14);
+  --map-water: #102532;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .35);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, .38);
+  --shadow-lg: 0 18px 50px rgba(0, 0, 0, .5);
+  --chart-temp: #d08d5a;
+  --chart-rain: #6fa8bd;
+  --flag-frame: rgba(0, 0, 0, .35);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #e9e6dc;
+  --surface: #f7f4ec;
+  --surface-2: #fffdf8;
+  --surface-3: #eeeadf;
+  --surface-raised: #fffdf8;
+  --glass: rgba(250, 247, 239, .94);
+  --line: #dcd6c7;
+  --line-strong: #c6bfac;
+  --text: #1e2826;
+  --text-2: #4f5d58;
+  --text-3: #7a857f;
+  --accent: #8b6c29;
+  --accent-strong: #6d531c;
+  --accent-soft: rgba(139, 108, 41, .12);
+  --accent-ink: #fffaf0;
+  --link: #2a7465;
+  --focus: #2a7465;
+  --positive: #3f8a56;
+  --warning: #a8741c;
+  --danger: #b4483a;
+  --danger-soft: rgba(180, 72, 58, .1);
+  --shadow-sm: 0 1px 2px rgba(60, 50, 30, .12);
+  --shadow-md: 0 8px 24px rgba(60, 50, 30, .16);
+  --shadow-lg: 0 18px 50px rgba(60, 50, 30, .22);
+  --flag-frame: rgba(40, 30, 10, .18);
+}
+
+@media (max-width: 1280px) { :root { --left-w: 286px; --right-w: 322px; } }
+@media (prefers-reduced-motion: reduce) { :root { --fast: 0ms; --slow: 0ms; } }

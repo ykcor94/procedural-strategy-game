@@ -1,0 +1,119 @@
+/* Information panel content: location, statistics, directory pages. */
+.inspector-empty, .civ-empty { display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-6) var(--space-4); text-align: center; color: var(--text-2); }
+.inspector-empty svg { width: 46px; height: 46px; fill: none; stroke: var(--text-3); stroke-width: 1.4; margin-bottom: var(--space-1); }
+.inspector-empty strong, .civ-empty h2 { font: 600 var(--fs-lg)/1.3 var(--font-display); color: var(--text); }
+.inspector-empty p, .civ-empty p { font-size: var(--fs-sm); max-width: 260px; }
+.civ-empty-icon { width: 42px; height: 42px; color: var(--text-3); stroke-width: 1.3; }
+.civ-empty button { margin-top: var(--space-2); }
+
+.location-title { font: 600 var(--fs-xl)/1.25 var(--font-display); margin-bottom: 2px; }
+.coordinate-label { margin-bottom: var(--space-3); font: var(--fs-xs) var(--font-mono); color: var(--text-3); }
+.type-badge { display: flex; align-items: center; gap: var(--space-2); padding: 10px 0; margin-bottom: var(--space-2); border-block: 1px solid var(--line); font-weight: 600; font-size: var(--fs-sm); }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; flex: none; vertical-align: -1px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .2); }
+.data-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); padding: 6px 0; font-size: var(--fs-sm); color: var(--text-2); border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+.data-row > span { flex: none; max-width: 55%; }
+.data-row strong { font-weight: 600; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.chart { display: block; width: 100%; height: auto; overflow: visible; margin: var(--space-3) 0 var(--space-1); color: var(--text-3); }
+.chart text { fill: var(--text-3); }
+.chart-note { display: flex; gap: var(--space-3); font-size: var(--fs-2xs); color: var(--text-3); }
+.chart-note i { display: inline-block; width: 12px; height: 3px; margin-right: 4px; vertical-align: 3px; border-radius: 2px; }
+.chart-note i.temp { background: var(--chart-temp); }
+.chart-note i.rain { height: 8px; vertical-align: 0; background: var(--chart-rain); }
+.description { font-size: var(--fs-sm); color: var(--text-2); margin: var(--space-2) 0; }
+
+.big-stats { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); margin-bottom: var(--space-4); }
+.big-stats > div { padding: var(--space-3); background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-md); }
+.stat-number { font: 600 var(--fs-2xl)/1.1 var(--font-display); color: var(--text); font-variant-numeric: tabular-nums; }
+.stat-label { margin-top: 4px; font-size: var(--fs-xs); color: var(--text-3); }
+.share-bar { display: flex; height: 8px; margin: var(--space-3) 0; border-radius: 4px; overflow: hidden; background: var(--map-water); }
+.share-bar span { background: var(--positive); }
+.distribution-row { display: grid; grid-template-columns: 10px 1fr auto; align-items: center; gap: var(--space-2); margin: 10px 0 2px; font-size: var(--fs-sm); color: var(--text-2); }
+.distribution-row > span:last-child { color: var(--text); font-variant-numeric: tabular-nums; font-size: var(--fs-xs); }
+.distribution-track { height: 4px; margin-left: 18px; border-radius: 2px; background: var(--surface-3); }
+.distribution-track span { display: block; height: 4px; min-width: 2px; border-radius: 2px; }
+
+/* Directory navigation ---------------------------------------------- */
+.civ-navigation {
+  position: sticky; top: calc(-1 * var(--space-4)); z-index: 2; display: flex; align-items: center; gap: 4px;
+  margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-4)) var(--space-3); padding: var(--space-2) var(--space-3);
+  background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.civ-navigation button { min-height: 28px; }
+.civ-navigation .icon-button { width: 28px; border-color: transparent; background: transparent; }
+.civ-directory-home { border-color: transparent; background: transparent; color: var(--text-2); }
+.civ-navigation > span { margin-left: auto; font-size: var(--fs-xs); color: var(--text-3); font-weight: 600; }
+.civ-back { min-height: 26px; padding: 0 8px 0 2px; margin-bottom: var(--space-3); border-color: transparent; background: transparent; color: var(--text-2); }
+.civ-eyebrow, .game-eyebrow { font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
+.civ-title { font: 600 var(--fs-2xl)/1.15 var(--font-display); margin: var(--space-1) 0 var(--space-1); overflow-wrap: anywhere; }
+.civ-subtitle { font-size: var(--fs-sm); color: var(--text-2); margin-bottom: var(--space-3); }
+.civ-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: var(--space-3) 0; }
+.civ-actions button { min-height: 30px; font-size: var(--fs-xs); }
+.civ-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin: var(--space-3) 0; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
+.civ-metrics > div { padding: 10px 12px; background: var(--surface-2); }
+.civ-metrics strong { display: block; font: 600 var(--fs-xl)/1.15 var(--font-display); font-variant-numeric: tabular-nums; }
+.civ-metrics span { display: block; margin-top: 2px; font-size: var(--fs-2xs); color: var(--text-3); }
+.civ-link { min-height: 0; padding: 0; border: 0; background: none; color: var(--link); font-weight: 600; font-size: inherit; white-space: normal; text-align: right; }
+.civ-link:hover:not(:disabled) { background: none; text-decoration: underline; }
+.civ-place, .civ-directory-item, .civ-composition-row, .society-country-share {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); width: 100%; min-height: 0;
+  padding: 8px 6px; margin: 0 -6px; width: calc(100% + 12px); border: 0; border-radius: var(--radius-sm); background: transparent;
+  text-align: left; font-weight: 400; white-space: normal;
+}
+.civ-place:hover:not(:disabled), .civ-directory-item:hover:not(:disabled), .civ-composition-row:hover:not(:disabled) { background: var(--surface-3); }
+.civ-place span { display: flex; align-items: center; gap: 8px; min-width: 0; overflow-wrap: anywhere; }
+.civ-place strong, .civ-directory-item > b { flex: none; font-size: var(--fs-xs); font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.civ-directory-item { gap: var(--space-3); padding: 9px 6px; }
+.civ-directory-item > span:not(.mini-flag) { flex: 1; min-width: 0; }
+.civ-directory-item strong { display: block; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.civ-directory-item small { display: block; margin-top: 1px; font-size: var(--fs-2xs); color: var(--text-3); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.civ-directory-item > b { max-width: 96px; text-align: right; }
+.civ-directory-controls { display: grid; grid-template-columns: 1fr; gap: 6px; margin: var(--space-3) 0 var(--space-2); }
+.civ-sort-label { display: grid; gap: 4px; margin-bottom: var(--space-2); font-size: var(--fs-xs); color: var(--text-3); }
+.mini-flag { flex: none; line-height: 0; border-radius: 3px; overflow: hidden; box-shadow: 0 0 0 1px var(--flag-frame); }
+.mini-flag svg { display: block; width: 32px; height: 20px; }
+.culture-dot { width: 20px; height: 20px; flex: none; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .2); }
+.city-dot { width: 20px; flex: none; text-align: center; font-style: normal; color: var(--accent); }
+.society-world-summary { margin: var(--space-2) 0; }
+
+.nation-hero { position: relative; display: grid; place-items: center; height: 128px; margin-bottom: var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--line);
+  background: radial-gradient(circle at 50% 40%, var(--surface-3), var(--surface-2)); }
+.nation-hero svg { width: 150px; height: 90px; border-radius: 4px; box-shadow: 0 0 0 1px var(--flag-frame), var(--shadow-md); }
+.nation-code { position: absolute; right: 8px; bottom: 6px; font: 600 var(--fs-2xs) var(--font-mono); color: var(--text-3); }
+.city-hero { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; font-size: 34px; line-height: 1; color: var(--accent); }
+.city-hero span { font-size: var(--fs-2xs); font-weight: 700; letter-spacing: .08em; color: var(--text-3); }
+.city-classification { font-size: var(--fs-sm); color: var(--text-2); }
+.culture-hero { display: grid; place-items: center; height: 82px; border-radius: var(--radius-md); font-size: 40px; color: var(--culture-color); background: color-mix(in srgb, var(--culture-color) 14%, transparent); border: 1px solid color-mix(in srgb, var(--culture-color) 30%, transparent); }
+.civ-name-samples { font: var(--fs-md)/1.6 var(--font-display); color: var(--text-2); }
+
+.civ-composition { display: grid; grid-template-columns: 64px 1fr; gap: var(--space-3); align-items: center; margin: var(--space-2) 0 var(--space-3); }
+.civ-pie { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; }
+.civ-pie > span { width: 36px; height: 36px; border-radius: 50%; background: var(--surface); }
+.civ-composition-row { display: grid; grid-template-columns: 8px 1fr auto; gap: 8px; padding: 3px 4px; margin: 0 -4px; width: calc(100% + 8px); font-size: var(--fs-xs); }
+.civ-composition-row i { width: 8px; height: 8px; border-radius: 50%; }
+.civ-composition-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.civ-composition-row b { font-weight: 600; color: var(--text-2); font-variant-numeric: tabular-nums; }
+
+/* Society widgets ---------------------------------------------------- */
+.society-settings { }
+.society-sector-bar { display: flex; gap: 2px; margin: var(--space-3) 0; border-radius: var(--radius-sm); overflow: hidden; font-size: var(--fs-2xs); }
+.society-sector-bar span { padding: 6px 4px; background: #7f9a6c; color: #f7f5ea; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.society-sector-bar span:nth-child(2) { background: #a88b6f; }
+.society-sector-bar span:nth-child(3) { background: #5f93a0; }
+.society-atlas-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: var(--space-2) 0; }
+.society-country-share { flex-direction: column; align-items: stretch; }
+.society-country-share small { display: block; margin-top: 2px; font-size: var(--fs-2xs); color: var(--text-3); line-height: 1.5; }
+.society-country-more { margin-top: var(--space-2); }
+.society-etymology { font: italic var(--fs-md)/1.4 var(--font-display); color: var(--text-2); margin: var(--space-1) 0 var(--space-2); }
+.society-traits { display: flex; flex-wrap: wrap; gap: 6px; margin: var(--space-3) 0; }
+.society-traits span { padding: 3px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius-pill); font-size: var(--fs-xs); color: var(--text-2); }
+.society-lexicon { display: grid; grid-template-columns: 1fr 1fr; gap: 0 var(--space-3); }
+.society-lexicon > div { display: flex; justify-content: space-between; gap: 6px; padding: 6px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-xs); }
+.society-lexicon span { color: var(--text-3); }
+.society-lexicon strong { font: 600 var(--fs-md) var(--font-display); }
+.society-sound-changes { font-size: var(--fs-xs); }
+.civ-settings-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin-top: var(--space-4); background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
+.civ-settings-summary:empty { display: none; }
+.civ-settings-summary > div { padding: 8px; background: var(--surface-2); text-align: center; }
+.civ-settings-summary strong { display: block; font: 600 var(--fs-lg)/1.1 var(--font-display); }
+.civ-settings-summary span { font-size: var(--fs-2xs); color: var(--text-3); }
+.settlement-metropolis, .settlement-megalopolis { color: var(--accent-strong); font-weight: 600; }
