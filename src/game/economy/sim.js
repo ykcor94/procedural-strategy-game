@@ -14,6 +14,9 @@ export {ECONOMY_VERSION};
  * (saved in meta.game.economy); the baseline and snapshots are derived and cached per runtime. */
 const DAY=86400000;
 const listeners=new Set();
+let monthHook=null;
+/** The campaign registers one hook that runs at the start of every month (world market, demography, fund). */
+export const setMonthHook=fn=>{monthHook=fn;};
 export const onEconomyEvent=fn=>{listeners.add(fn);return()=>listeners.delete(fn);};
 function emit(econ,text,tone='info'){econ.log.unshift({day:econ.day,text,tone});if(econ.log.length>80)econ.log.length=80;for(const fn of listeners)fn({text,tone});}
 export const dateOf=(world,day)=>new Date(dateEpoch(world.meta.game.startDate)+day*DAY);
@@ -79,6 +82,7 @@ function dayStep(world,econ){
   const date=dateOf(world,econ.day);if(date.getUTCDate()===1)monthStep(world,econ,rt,date);
 }
 function monthStep(world,econ,rt,date){
+  if(monthHook){try{monthHook(world,econ,date,(text,tone)=>emit(econ,text,tone));}catch(e){console.error(e);}rt.dirty=true;}
   const snap=current(world,econ),rev=snap.revenue.total/12,spend=snap.spending.total/12,wasNegative=econ.treasury<0;
   econ.treasury+=rev-spend;
   econ.last={rev,spend,net:rev-spend,byTax:Object.fromEntries(Object.entries(snap.revenue.byTax).map(([k,v])=>[k,v/12])),items:snap.spending.items.map(i=>({id:i.id,name:i.name,amount:i.amount/12}))};
@@ -121,9 +125,9 @@ function construct(world,econ,rt){
     if((where.stability??where.local)<TUNING.instabilityStall){p.status='unrest';continue;}
     const absorb=p.work/p.days*(p.rush?TUNING.rush[0]:1);let work=Math.min(absorb,remaining,p.work-p.done);
     if(work<=1e-9){p.status='capacity';continue;}
-    const unit=p.rush?TUNING.rush[1]:1,funds=econ.treasury-reserveOf(econ,snap)+(econ.borrowBuild?snap.credit.available:0);
+    const unit=p.rush?TUNING.rush[1]:1,fromFund=p.reserve!=null,funds=fromFund?p.reserve:econ.treasury-reserveOf(econ,snap)+(econ.borrowBuild?snap.credit.available:0);
     if(work*unit>funds){work=Math.max(0,funds)/unit;if(work<=1e-9){p.status='funds';continue;}}
-    econ.treasury-=work*unit;remaining-=work;p.done+=work;p.paid+=work*unit;p.status='building';
+    if(fromFund)p.reserve-=work*unit;else econ.treasury-=work*unit;remaining-=work;p.done+=work;p.paid+=work*unit;p.status='building';
   }
   const finished=econ.queue.filter(p=>p.done>=p.work-1e-6);
   if(finished.length){for(const p of finished)completeProject(world,econ,p);econ.queue=econ.queue.filter(p=>!finished.includes(p));touch(world,econ);}
@@ -183,7 +187,7 @@ export function queueProject(world,econ,type,place,size=2){
   const project={id:econ.nextId++,type,place,placeName:q.placeName,size:q.size,ind:q.ind,jobs:q.jobs,suit:q.suit,work:q.cost,done:0,paid:0,days:q.days,paused:false,rush:false,status:'queued',day:econ.day};
   econ.queue.push(project);touch(world,econ);emit(econ,`${BUILDING_BY_ID[type].name} queued in ${q.placeName}.`);return {ok:true,project};
 }
-export function cancelProject(world,econ,id){const p=econ.queue.find(x=>x.id===id);if(!p)return {ok:false,error:'No such project.'};econ.treasury+=p.paid*.5;econ.queue=econ.queue.filter(x=>x!==p);touch(world,econ);emit(econ,`${BUILDING_BY_ID[p.type].name} in ${p.placeName} cancelled${p.paid?`; half the spending was recovered`:''}.`);return {ok:true,refund:p.paid*.5};}
+export function cancelProject(world,econ,id){const p=econ.queue.find(x=>x.id===id);if(!p)return {ok:false,error:'No such project.'};econ.treasury+=p.paid*.5;if(p.reserve>0&&econ.fund)econ.fund.balance+=p.reserve;econ.queue=econ.queue.filter(x=>x!==p);touch(world,econ);emit(econ,`${BUILDING_BY_ID[p.type].name} in ${p.placeName} cancelled${p.paid?`; half the spending was recovered`:''}.`);return {ok:true,refund:p.paid*.5};}
 export function moveProject(world,econ,id,delta){const i=econ.queue.findIndex(x=>x.id===id),j=clamp(i+delta,0,econ.queue.length-1);if(i<0)return {ok:false};const [p]=econ.queue.splice(i,1);econ.queue.splice(j,0,p);return {ok:true};}
 export function toggleProject(world,econ,id,key){const p=econ.queue.find(x=>x.id===id);if(!p||!['paused','rush'].includes(key))return {ok:false};p[key]=!p[key];if(key==='rush'&&p[key]&&p.day===econ.day){/* no-op */}return {ok:true,value:p[key]};}
 

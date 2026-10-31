@@ -1,13 +1,14 @@
 import {validateEconomy} from './economy/validate.js';
+import {validateWorldState} from './world/state.js';
 /** A saved campaign: clock, player identity and the player's national economy (see game/economy). */
-export const GAME_VERSION=2;
+export const GAME_VERSION=3;
 export const GAME_SPEEDS=Object.freeze([1,6,24,72,168]); // game hours per real second
 const MAX_DATE=Date.parse('9999-12-31T23:00:00Z');
 export function dateEpoch(date){if(typeof date!=='string'||!/^\d{4}-\d\d-\d\d$/.test(date))throw new Error('Invalid campaign date.');const epoch=Date.parse(date+'T00:00:00Z');if(!Number.isFinite(epoch)||new Date(epoch).toISOString().slice(0,10)!==date||epoch<Date.parse('0001-01-01T00:00:00Z'))throw new Error('Invalid campaign date.');return epoch;}
 export function createGameState(world,nationId){
   if(!world.meta.civilization?.nations.some(n=>n.id===+nationId&&n.area>0))throw new Error('Select an existing nation before starting.');
   const startDate=world.meta.civilization.startDate||'2000-01-01';dateEpoch(startDate);
-  return {version:GAME_VERSION,playerNation:+nationId,startDate,currentDate:startDate,elapsedHours:0,paused:true,speed:1,view:{mode:'political',camera:null},rules:{simulation:'economy',editing:false}};
+  return {version:GAME_VERSION,playerNation:+nationId,startDate,currentDate:startDate,elapsedHours:0,paused:true,speed:1,view:{mode:'political',camera:null},rules:{simulation:'economy',editing:false},settings:{liveForeign:false}};
 }
 export function advanceGame(state,realMilliseconds){
   if(state.paused||!Number.isFinite(realMilliseconds)||realMilliseconds<=0)return false;
@@ -17,9 +18,13 @@ export function validateGameState(world){const g=world.meta.game;if(!g)return tr
 export function validateCampaignEconomy(world){const g=world.meta.game;if(g?.economy)validateEconomy(g.economy,new Set(world.meta.civilization.nations.map(n=>n.id)));return true;}
 export function normalizeGameState(world){
   if(!world.meta.game)return world;
-  const g=world.meta.game;if(g.version===1){g.version=GAME_VERSION;g.rules={...g.rules,simulation:'economy'};}
+  const g=world.meta.game;if(g.version===1||g.version===2){g.rules={...g.rules,simulation:'economy'};g.version=GAME_VERSION;}
   try{validateGameState(world);}catch{delete world.meta.game;return world;}
-  try{validateCampaignEconomy(world);}catch{delete g.economy;}
+  try{validateCampaignEconomy(world);}catch{delete g.economy;delete g.world;delete g.demography;}
+  const ids=new Set(world.meta.civilization.nations.map(n=>n.id));
+  if(g.world){try{validateWorldState(g.world,ids);if(g.world.player!==g.playerNation)throw new Error('player');}catch{delete g.world;}}
+  if(g.demography){const d=g.demography;if(d.version!==1||d.nation!==g.playerNation||!d.places||typeof d.places!=='object'||!d.census||!d.policies)delete g.demography;}
+  if(!g.settings||typeof g.settings!=='object')g.settings={liveForeign:false};
   return world;
 }
 export function selectionGroup(nation){const government=String(nation.government||'').toLowerCase();return /monarch|crown|kingdom/.test(government)?'monarchy':/dictat|regime|fascist|authoritarian|communist/.test(government)?'authoritarian':/theocra/.test(government)?'theocracy':'republic';}

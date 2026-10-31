@@ -24,5 +24,7 @@ export function validateEconomy(econ,nationIds){
   if(!isObject(econ.initiatives)||!Array.isArray(econ.initiatives.active)||econ.initiatives.active.length>10)fail('initiatives');
   for(const a of econ.initiatives.active)if(!INITIATIVE_BY_ID[a.id]||!finite(a.left,a.total))fail('initiative');
   if(!Array.isArray(econ.shocks)||!Array.isArray(econ.hist)||!Array.isArray(econ.log)||econ.hist.length>400||econ.log.length>200)fail('history');
+  if(econ.link!==undefined&&!isObject(econ.link))fail('link');
+  if(econ.fund!==undefined){const f=econ.fund;if(!isObject(f)||!finite(f.share,f.balance)||f.share<0||f.share>.5||!Array.isArray(f.directives)||f.directives.length>8)fail('fund');}
   return true;
 }

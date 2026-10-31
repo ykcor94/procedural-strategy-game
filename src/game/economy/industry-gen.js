@@ -3,6 +3,7 @@ import {seededRandom} from '../../core/random.js';
 import {BIOME_BY_CODE} from '../../data/biomes.js';
 import {INDUSTRIES,INDUSTRY_COUNT} from '../../data/industries.js';
 import {cityFootprint} from '../../civilization/society-utils.js';
+import {provinceResources,worldTypical,RESOURCE_INDEX} from '../resources.js';
 /** Starting industries are a deterministic partition of the generated output: climate, soil, rivers,
  * coasts, mountains, holy sites, size and national development decide the weights. Nothing here is
  * saved; only the player's later changes are. */
@@ -31,7 +32,12 @@ export function sampleEnvironment(world,cells){
   if(e.count)for(const k of Object.keys(e))if(k!=='count')e[k]/=e.count;
   return e;
 }
-export function deposits(world,provinceId){const civ=world.meta.civilization,r=seededRandom(`${world.seed}:${civ.seed}`,`deposit:${provinceId}`);return {ore:Math.pow(r(),1.5),fuel:Math.pow(r(),1.7)};}
+/** Ore and fuel richness (0–1) of a province, from its geological resources (see game/resources.js). */
+export function deposits(world,provinceId){
+  const rec=provinceResources(world).get(provinceId);if(!rec?.cells){const r=seededRandom(`${world.seed}:${world.meta.civilization.seed}`,`deposit:${provinceId}`);return {ore:Math.pow(r(),1.5),fuel:Math.pow(r(),1.7)};}
+  const t=worldTypical(world),rel=ids=>ids.reduce((s,id)=>s+rec.score[RESOURCE_INDEX[id]],0)/Math.max(1e-6,ids.reduce((s,id)=>s+t[RESOURCE_INDEX[id]],0));
+  return {ore:clamp(1-Math.exp(-.6*rel(['iron','copper','precious','gems'])),0,1),fuel:clamp(1-Math.exp(-.55*rel(['coal','oil'])),0,1)};
+}
 
 /** Raw site weights (before national tilt) for one place; `u` is 0 for rural land, up to 1 for a megacity. */
 function siteWeights(a){
