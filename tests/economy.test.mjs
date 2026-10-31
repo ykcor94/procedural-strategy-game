@@ -131,7 +131,7 @@ test('programmes cost money, occupy slots and end on schedule',async()=>{
 test('campaigns survive binary export, v1 upgrade and economy corruption',async()=>{
   const c=await campaign();advance(c,500);c.econ.treasury=1e18;queueProject(c.world,c.econ,'park',runtime(c.world,c.econ).places.find(p=>p.kind==='city').key,1);
   const restored=await readWorld(worldToBlob(c.world));assert.deepEqual(restored.meta.game.economy,c.econ);assert.equal(validateGameState(restored),true);
-  const old=structuredClone(c.world);old.meta.game.version=1;delete old.meta.game.economy;normalizeGameState(old);assert.equal(old.meta.game.version,2);assert.equal(old.meta.game.rules.simulation,'economy');
+  const old=structuredClone(c.world);old.meta.game.version=1;delete old.meta.game.economy;normalizeGameState(old);assert.equal(old.meta.game.version,3);assert.equal(old.meta.game.rules.simulation,'economy');
   const broken=structuredClone(c.world);broken.meta.game.economy.laws.tax.pos=99;normalizeGameState(broken);assert.ok(broken.meta.game,'the campaign survives');assert.equal(broken.meta.game.economy,undefined,'the damaged economy is dropped');
   assert.throws(()=>validateEconomy({...c.econ,treasury:NaN}));assert.throws(()=>validateEconomy({...c.econ,queue:[{type:'nope'}]}));
   assert.equal(ensureEconomy(broken).nation,c.nation.id,'it can be created afresh');
