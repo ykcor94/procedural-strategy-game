@@ -57,7 +57,7 @@ export function aiYear(world,ws,n,nation,effects,year,news){
   const cycle=.012*Math.sin(ws.cycle+n.cycle+year*2*Math.PI/8.5),shock=(r()+r()+r()-1.5)*.016;
   const terms=effects?.price?avgOver(effects.price,n.shares)-1:0,shortage=effects?1-avgOver(effects.avail,n.shares):0,sanctioned=ws.sanctions.filter(s=>s.on===n.id).reduce((s,x)=>s+(x.level==='embargo'?.012:x.level==='broad'?.007:.003),0);
   const labour=n.popGrowth*.55,welfareDrag=.006*Math.max(0,p.welfare-.5),taxDrag=.03*Math.max(0,p.tax-.3),stabEffect=.0004*(n.stab-55);
-  let growth=.003+catchUp*.85+.008*inst+style+cycle+shock+.35*terms-.08*shortage-sanctioned+labour-welfareDrag-taxDrag+stabEffect;
+  let growth=-.002+catchUp*.8+.008*inst+style+cycle+shock+.35*terms-.08*shortage-sanctioned+labour-welfareDrag-taxDrag+stabEffect;
   if(n.shock?.left>0)growth-=.025;
   growth=clamp(growth,-.09,.095);const old=n.growth;n.growth=+growth.toFixed(5);
   // Stability follows growth, prices, welfare and sanctions.
@@ -73,7 +73,7 @@ export function aiYear(world,ws,n,nation,effects,year,news){
   if(n.stab<20&&r()<.35){const reform=r()<.5?'raises welfare spending to calm the streets':'cuts taxes after mass protests';if(reform.includes('welfare'))p.welfare=+clamp(p.welfare+.15,0,1).toFixed(3);else p.tax=+clamp(p.tax-.04,.06,.45).toFixed(3);news(`Unrest in ${name}: the government ${reform}.`,'bad',n.id);n.stab=+(n.stab+6).toFixed(2);}
   if(n.stab<15&&r()<.2){p.openness=+clamp(p.openness-.2,.05,1).toFixed(3);p.tariff=+clamp(p.tariff+.06,.01,.35).toFixed(3);news(`${name} turns inward: tariffs rise and borders tighten.`,'warn',n.id);}
   if(n.stab>75&&p.openness<.6&&r()<.15){p.openness=+clamp(p.openness+.15,0,1).toFixed(3);p.tariff=+clamp(p.tariff-.04,.01,.35).toFixed(3);news(`${name} liberalises trade.`,'info',n.id);}
-  for(const m of [1e7,2e7,5e7,1e8,2e8,5e8,1e9])if(n.pop>=m&&(n.popPrev||0)<m)news(`${name}'s population passes ${m>=1e9?m/1e9+' billion':m/1e6+' million'}.`,'info',n.id);
+  if(n.popPrev!=null)for(const m of [1e7,2e7,5e7,1e8,2e8,5e8,1e9])if(n.pop>=m&&n.popPrev<m)news(`${name}'s population passes ${m>=1e9?m/1e9+' billion':m/1e6+' million'}.`,'info',n.id);
   n.popPrev=n.pop;if(n.shock)n.shock.left=Math.max(0,n.shock.left-12);
   // Harvest failures strike farm economies with bad luck.
   const farm=n.shares[I.farming]+n.shares[I.herding];if(r()<.012+.05*farm){n.shock={goods:['grain','livestock','fruit','fibres'],factor:.72,left:12,kind:'harvest'};news(`Harvest failure in ${name}: grain prices climb across the region.`,'bad',n.id);}

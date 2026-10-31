@@ -1,6 +1,6 @@
 # Atlas Foundry v10 — Update Plan
 
-Status: **draft for review**. Nothing here is implemented yet. Mark anything to cut, change or reprioritise.
+Status: **implemented in 10.0** with the adjustments requested in review: currencies keep three-letter codes, no technology-gated resources, most new maps live in the Atlas rather than the map-mode list, live foreign figures are a display setting, diplomacy stays limited to agreements, sanctions, blocs and a trade relation.
 
 ---
 

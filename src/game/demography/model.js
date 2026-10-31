@@ -39,7 +39,7 @@ export function startingBands(dev,urban=false){
 }
 export const lifeTarget=(dev,services=1)=>clamp(46+34*dev+4*(services-1),35,86);
 export const literacyTarget=(dev,services=1)=>clamp(.2+.78*Math.pow(dev,.8)+.06*(services-1),.05,.995);
-export const baseFertility=(dev,urban)=>clamp(1.45+4.5*Math.pow(1-dev,1.7),1.1,7.2)*(urban?.84:1.06);
+export const baseFertility=(dev,urban)=>clamp(1.85+4.4*Math.pow(1-dev,1.7),1.2,7.2)*(urban?.9:1.08);
 
 const fromMix=list=>normalizeGroups((list||[]).map(e=>[e.id,e.share??e.population??0]));
 export function createNationDemography(world,nation){

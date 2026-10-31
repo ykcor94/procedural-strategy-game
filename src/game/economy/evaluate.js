@@ -97,7 +97,7 @@ export function evaluate(world,rt,base,over){
     {id:'admin',name:'Administration',amount:scale*.25*gdp*econ.spend.admin},
     {id:'services',name:'Education & health',amount:scale*.25*gdp*econ.spend.services},
     {id:'welfare',name:'Welfare',amount:(mods.abs.welfare??0)*scale*gdp},
-    {id:'security',name:'Security reserve',amount:scale*.16*gdp},
+    {id:'security',name:'Security reserve',amount:scale*(C.security??.16)*gdp},
     {id:'subsidies',name:'Industry subsidies',amount:subsidies},
     {id:'upkeep',name:'Upkeep of public works',amount:TUNING.stockUpkeep*stock},
     {id:'interest',name:'Interest on debt',amount:econ.debt*interestRate+overdraft*(interestRate+.02)},

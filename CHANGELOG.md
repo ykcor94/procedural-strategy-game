@@ -1,5 +1,38 @@
 # Changelog
 
+## 10.0 · the living world
+
+**Economy and trade**
+- Fourteen natural resources (grain, livestock, fish, timber, fibres, fruit & spices, iron, copper & tin, coal, oil & gas, precious metals, stone & clay, salt, gemstones) are derived from soils, climate, biomes, drainage and plate history. Ore and fuel deposits now drive the starting mining and energy industries.
+- A world goods market of eighteen goods (fourteen raw, plus processed food, consumer goods, machinery & steel and power) clears every month across all nations. Surpluses flow to deficits along trade links weighted by distance, agreements, blocs and tariffs. World prices move with supply and demand, commodity booms and busts, and harvest failures.
+- Input shortages slow the industries that use them; producers gain or lose with world prices; household prices (cost of living) and staple shortages affect stability. A new campaign still starts exactly at the generated economy.
+- Light diplomacy: a trade relation with every nation (with a visible breakdown), trade agreements, free trade and ten-year supply contracts, regional trade blocs you can apply to join, and three levels of sanctions with retaliation and coalitions.
+- Auto-build fund: set aside a share of revenue and give standing directives (best return, housing where short, harbours, civic works or a specific building; anywhere, in one province, in the poorest provinces, where unemployment is high or near a resource). Fund projects never draw on the treasury.
+
+**Demographics**
+- Your population now lives: five age bands, culture, language and religion shares, literacy, life expectancy and fertility in every city and countryside. People are born, age, die, move to the cities and towards jobs, emigrate and immigrate (with conservation against the source nations), assimilate, change language and convert or secularise.
+- You see the census, not the live truth. Choose a census every 1, 2, 5 or 10 years (shorter intervals cost more), or order an emergency census (three months). Accuracy depends on institutions and can be modernised.
+- Policies for immigration, refugees, minorities, language and religion, and ten population programmes (family allowance, health, schools, language standardisation, assimilation, missions, autonomy charters, resettlement, urban renewal, census modernisation). Minorities' contentment feeds stability.
+- Demographics panel (D): census overview with age pyramid and history, groups, places by province and city, migration, 10–30 year projections with uncertainty and scenarios, and policy. While it is open, the map shows your census through a population lens with other nations greyed out; mixed regions are striped in the colours of their groups.
+
+**AI nations**
+- Every nation now changes over time: yearly plans set by its government's economic style (taxes, welfare, openness, investment focus, migration and minority policy), catch-up growth, business cycles, shocks, world prices, sanctions and stability. Populations follow the same demographic model. AI nations reform under unrest, join and leave blocs and occasionally sanction rivals. A World tab (W) carries the news feed and a league table.
+- Foreign nations show their own last census; a display setting shows live figures for sandbox play.
+
+**Interface**
+- The ministry panels were rebuilt around tiles, charts and hoverable icons: a budget flow diagram, treemaps, history charts, revenue curves for every tax, an industry board with input supply rings and input/output diagrams, a construction palette with ranked sites lit on the map and a timeline queue, reform tracks with public mood and a positions radar, and a stability gauge with its drivers.
+- New Trade tab (T): goods markets with price history, partners, blocs and sanctions.
+- Atlas lenses (M): economy (output per person, growth, leading industry, unemployment, construction, world growth and stability), resources, trade and diplomacy, and population maps, kept out of the main map-mode list, each with a legend and hover read-out.
+- The trade map now covers every part of the view instead of only the busiest routes, follows live volumes and shows blocked routes; an all-routes option is available to renderers.
+- Borders gain terrain-guided detail as you zoom in (Display settings: off, natural, rugged).
+- P shows or hides all province layers.
+
+**Polish**
+- Province, city, culture, language, family and religion names are unique across the world (accents, case and doubled letters do not count as different); religions never reuse a people's name.
+- Theocracies keep "No Religion" a small minority; neighbouring nations, peoples and languages never keep near-identical colours.
+- Currencies keep their three-letter codes; no real-world currency symbols are used.
+- Runs on GitHub Pages (a workflow tests and deploys on every push to main).
+
 ## 9.0 · the economy
 
 **Campaign**

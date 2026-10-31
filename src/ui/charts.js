@@ -64,11 +64,11 @@ export function ring(value,{size=38,color='var(--accent)',label='',tip=''}={}){
 }
 /** Semi-circular gauge. bands: [{to,color}] over [min,max]. */
 export function gauge(value,{min=0,max=100,bands=[],label='',sub='',width=150}={}){
-  const h=width*.62,cx=width/2,cy=h-8,r=width/2-12,ang=v=>Math.PI*(1-(Math.max(min,Math.min(max,v))-min)/(max-min)),pt=(v,rr=r)=>[cx+rr*Math.cos(ang(v)),cy-rr*Math.sin(ang(v))];
+  const h=width*.74,cx=width/2,cy=width*.52,r=width/2-12,ang=v=>Math.PI*(1-(Math.max(min,Math.min(max,v))-min)/(max-min)),pt=(v,rr=r)=>[cx+rr*Math.cos(ang(v)),cy-rr*Math.sin(ang(v))];
   let svg=`<svg class="chart gauge" viewBox="0 0 ${width} ${h}" role="img" aria-label="${esc(label)} ${esc(String(value))}">`,from=min;
   for(const b of bands){const [x0,y0]=pt(from),[x1,y1]=pt(b.to);svg+=`<path d="M${f1(x0)},${f1(y0)}A${r},${r} 0 0 1 ${f1(x1)},${f1(y1)}" style="stroke:${b.color}" class="gauge-band"/>`;from=b.to;}
   const [nx,ny]=pt(value,r-10);svg+=`<line class="needle" x1="${cx}" y1="${cy}" x2="${f1(nx)}" y2="${f1(ny)}"/><circle class="needle-hub" cx="${cx}" cy="${cy}" r="4"/>`;
-  return svg+`<text class="gauge-label" x="${cx}" y="${cy-18}" text-anchor="middle">${esc(label)}</text>${sub?`<text class="gauge-sub" x="${cx}" y="${cy-5}" text-anchor="middle">${esc(sub)}</text>`:''}</svg>`;
+  return svg+`<text class="gauge-label" x="${cx}" y="${cy+24}" text-anchor="middle">${esc(label)}</text>${sub?`<text class="gauge-sub" x="${cx}" y="${cy+36}" text-anchor="middle">${esc(sub)}</text>`:''}</svg>`;
 }
 /** Radar chart. axes: [{label}], series: [{label,color,values (0..1)}] */
 export function radar(axes,series,{size=210}={}){

@@ -347,3 +347,5 @@ body.ministry-open[data-view="game"] .atlas-legend { left: calc(min(580px, 100vw
 
 #ministry .layer-chips button[aria-pressed="true"], .atlas-panel .lens-chips button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .pyramid { max-height: 190px; }
+.stability-card p strong { font: inherit; font-weight: 700; }
+.gauge-label { font-size: 20px; }

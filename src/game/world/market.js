@@ -97,7 +97,7 @@ export function solveMarket(world,ws,{playerOut=null,playerTariff=null,playerTar
 export function updatePrices(ws,res){
   for(let g=0;g<GOOD_COUNT;g++){
     const push=(res.excess[g]-(ws.goods.excess0?.[g]||0))*.9+ws.shocks.filter(s=>s.good===GOODS[g].id).reduce((s,x)=>s+x.push,0),p=ws.goods.price[g];
-    ws.goods.price[g]=+clamp(p*Math.exp(clamp(push,-.25,.25)*.35)*Math.pow(1/p,.015),.3,4).toFixed(5);
+    ws.goods.price[g]=+clamp(p*Math.exp(clamp(push,-.25,.25)*.35)*Math.pow(1/p,.03),.3,4).toFixed(5);
   }
   for(const s of ws.shocks)s.left--;ws.shocks=ws.shocks.filter(s=>s.left>0);
 }

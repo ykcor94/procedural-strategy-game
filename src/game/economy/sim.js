@@ -46,6 +46,8 @@ export function createEconomy(world,nationId){
     consts:{baseLaws,stab0,stabBase:0,scale:1,burden0:.27,gdp0:0,rev0:0},hist:[],snap:{},snapDay:0,log:[]};
   const rt=runtime(world,econ),first=evaluate(world,rt,econ);
   Object.assign(econ.consts,{gdp0:first.gdp,rev0:first.revenue.total,burden0:first.burden,scale:first.gdp?first.revenue.total/first.gdp:.15});
+  // Start close to a balanced budget (a small surplus) so a neutral nation neither hoards nor sinks.
+  {const e=evaluate(world,rt,econ),net=e.revenue.total-e.spending.total;econ.consts.security=+Math.min(.45,Math.max(.08,.16+(net-.03*e.revenue.total)/Math.max(1,e.revenue.total))).toFixed(4);}
   const second=evaluate(world,rt,econ);
   econ.debt=Math.round(Math.min(second.gdp*(.05+.4*r())*(.5+inst),.7*second.credit.limit));econ.treasury=Math.round(second.revenue.total*(1.5+4*r()));
   econ.consts.stabBase=stab0-evaluate(world,rt,econ).stability.terms.reduce((s,t)=>s+t.value,0);

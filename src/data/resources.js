@@ -14,7 +14,7 @@ const rows=[
   ['livestock','Livestock','farm','#b8875e','livestock','herding',1,0,'Cattle, sheep and goats on grassland, steppe and dry uplands.'],
   ['fish','Fish','farm','#5aa3b9','fish','fishing',1,0,'Catches from cool coasts, deltas, lakes and great rivers.'],
   ['timber','Timber','farm','#5b8b5e','timber','forestry',0,0,'Logs and wood from boreal, temperate and tropical forests.'],
-  ['fibres','Fibres','farm','#e3d7b5','fibres','farming',0,0,'Cotton from warm valleys and wool from cool pastures.'],
+  ['fibres','Fibres','farm','#e3a3bd','fibres','farming',0,0,'Cotton from warm valleys and wool from cool pastures.'],
   ['fruit','Fruit & spices','farm','#d8774f','fruit','farming',0,0,'Orchards, vineyards, tea and spice gardens in tropical and mediterranean climates.'],
   ['iron','Iron ore','mineral','#8a6d63','iron','mining',0,1,'Banded ores on ancient continental shields.'],
   ['copper','Copper & tin','mineral','#c47a45','copper','mining',0,1,'Porphyry ores along young mountain belts and old volcanoes.'],
